@@ -1,0 +1,8 @@
+#include "ls_pseudoinverse.hpp"
+
+namespace ls_pseudoinverse
+{
+
+	
+
+}

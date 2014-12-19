@@ -1,0 +1,7 @@
+rock_library(ls_pseudoinverse
+    SOURCES ls_pseudoinverse.cpp
+    HEADERS ls_pseudoinverse.hpp)
+
+rock_executable(ls_pseudoinverse_bin Main.cpp
+    DEPS ls_pseudoinverse)
+

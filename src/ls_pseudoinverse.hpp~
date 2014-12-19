@@ -1,0 +1,19 @@
+#ifndef _LS_PSEUDOINVERSE_HPP_
+#define _LS_PSEUDOINVERSE_HPP_
+
+#include <iostream>
+
+namespace ls_pseudoinverse
+{
+	class LS_Pseudo
+	{
+		public: 
+			
+			void welcome();
+			
+		private:
+	};
+
+} // end namespace ls_pseudoinverse
+
+#endif // _LS_PSEUDOINVERSE_HPP_
