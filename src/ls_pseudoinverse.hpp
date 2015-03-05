@@ -2,6 +2,7 @@
 #define _LS_PSEUDOINVERSE_HPP_
 
 #include <iostream>
+#include <vector>
 #include <queue>
 #include <math.h>
 #include "base/samples/RigidBodyState.hpp"

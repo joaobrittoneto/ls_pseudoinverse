@@ -310,8 +310,8 @@ namespace ls_pseudoinverse
 		convert_param(parameters, real_parameters);
 		relativ_error(acceleration, states, parameters, error);
 
-		std::cout<<std::endl<< "parameters pseudo: " <<std::endl << real_parameters <<std::endl;
-		std::cout<<std::endl<< "error pseudo: "<< error <<std::endl<< std::endl;
+		std::cout<<std::endl<< "parameters by pseudo_inverse: " <<std::endl << real_parameters <<std::endl;
+		//std::cout<<std::endl<< "error pseudo: "<< error <<std::endl<< std::endl;
 
 		//convert_data2(queueOfDyn, states, forces);
 
@@ -319,14 +319,14 @@ namespace ls_pseudoinverse
 		convert_param(parameters, real_parameters);
 		relativ_error(acceleration, states, parameters, error);
 
-		std::cout<<std::endl<< "parameters svd: " <<std::endl << real_parameters <<std::endl;
-		std::cout<<std::endl<< "error svd: "<< error <<std::endl<< std::endl;
+		std::cout<<std::endl<< "parameters by Singular Value Decomposition (SVD) : " <<std::endl << real_parameters <<std::endl;
+		//std::cout<<std::endl<< "error svd: "<< error <<std::endl<< std::endl;
 
 		pcr(acceleration, states, parameters);
 		relativ_error(acceleration, states, parameters, error);
 		convert_param(parameters, real_parameters);
-		std::cout<<std::endl<< "parameters pcr: " <<std::endl << real_parameters <<std::endl;
-		std::cout<<std::endl<< "error pcr: "<< error <<std::endl<< std::endl;
+		std::cout<<std::endl<< "parameters by Principal Component Regression (PCR): " <<std::endl << real_parameters <<std::endl;
+		//std::cout<<std::endl<< "error pcr: "<< error <<std::endl<< std::endl;
 
 	//	lu(acceleration, states, parameters);
 	//	convert_param(parameters, real_parameters);
