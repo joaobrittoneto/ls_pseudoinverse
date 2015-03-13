@@ -27,7 +27,6 @@ namespace ls_pseudoinverse
 			void convert_data (std::queue<adap_samples_input::DynamicAUV> &queueOfDyn, base::MatrixXd &states, base::MatrixXd &acceleration);
 			void convert_data2 (std::queue<adap_samples_input::DynamicAUV> &queueOfDyn, base::MatrixXd &states, base::MatrixXd &forces);
 			void pseudo (base::MatrixXd &output, base::MatrixXd &states, base::MatrixXd &parameters);
-			void lu (base::MatrixXd &output, base::MatrixXd &states, base::MatrixXd &parameters);
 			void svd (base::MatrixXd &output, base::MatrixXd &states, base::MatrixXd &parameters);
 			void pcr (base::MatrixXd &output, base::MatrixXd &states, base::MatrixXd &parameters);
 			void convert_param (base::MatrixXd &parameters, base::MatrixXd &real_parameters);

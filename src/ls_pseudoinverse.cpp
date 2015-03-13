@@ -75,6 +75,16 @@ namespace ls_pseudoinverse
 		acceleration.resize(1,queueOfDyn.size());
 		adap_samples_input::DynamicAUV dyn;
 
+		// // fist acceleration is nan
+		dyn = queueOfDyn.front();
+		queueOfDyn.pop();
+		if((isnan)((double)dyn.rba.acceleration(dof)))
+		{
+			std::cout << std::endl << "acce: "<< dyn.rba.acceleration(dof) << std::endl;
+			std::cout << "vel: "<< dyn.rbs.velocity[dof] << std::endl;
+			std::cout << "for: "<< dyn.joints.elements[dof].effort << std::endl;
+		}
+
 		for( int i=0; i < queueOfDyn.size(); i++)
 			{
 				dyn = queueOfDyn.front();
@@ -85,14 +95,20 @@ namespace ls_pseudoinverse
 
 				if(dof<3)
 					{
+
 						acceleration(0,i) = dyn.rba.acceleration(dof);
 						states(1,i) = dyn.rbs.velocity[dof] * fabs(double(dyn.rbs.velocity[dof]));
 						states(2,i) = dyn.rbs.velocity[dof];
-						//std::cout << "f("<< i << "): " << states(0,i) << " " << states(1,i)<< " " << states(2,i) << " " << states(3,i) << std::endl;
+						if((isnan)((double)dyn.rba.acceleration(dof)))
+						{
+							std::cout << "f("<< i << "): " << states(0,i) << " " << states(1,i)<< " " << states(2,i) << " " << states(3,i) << std::endl;
+							std::cout << "acceleration("<< i << "): " << acceleration(0,i) << std::endl;
+						}
+
 					}
 				else
 					{
-						acceleration(0,i) = dyn.rba.acceleration(dof-3);
+						acceleration(0,i) = dyn.ang_rba.acceleration(dof);
 						states(1,i) = dyn.rbs.angular_velocity[dof] * fabs(double(dyn.rbs.angular_velocity[dof]));
 						states(2,i) = dyn.rbs.angular_velocity[dof];
 					}
@@ -109,6 +125,9 @@ namespace ls_pseudoinverse
 		states.resize(4,queueOfDyn.size());
 		forces.resize(1,queueOfDyn.size());
 		adap_samples_input::DynamicAUV dyn;
+
+		// fist acceleration is nan
+		queueOfDyn.pop();
 
 		for( int i=0; i < queueOfDyn.size(); i++)
 		{
@@ -127,7 +146,7 @@ namespace ls_pseudoinverse
 			}
 			else
 			{
-				states(0,i) = dyn.rba.acceleration(dof-3);
+				states(0,i) = dyn.ang_rba.acceleration(dof);
 				states(1,i) = dyn.rbs.angular_velocity[dof] * fabs(double(dyn.rbs.angular_velocity[dof]));
 				states(2,i) = dyn.rbs.angular_velocity[dof];
 			}
@@ -148,36 +167,22 @@ namespace ls_pseudoinverse
 			parameters.resize(4,1);
 
 			base::MatrixXd gram = states * states.transpose();
+
+			for(int j=0;j<output.size(); j++)
+			{
+				if((isnan)((double)output(0,j)))
+				{
+					std::cout << std::endl << "nan in pos: "<< j << std::endl;
+					std::cout << "output("<< j << "): "<< output(0,j) << std::endl;
+				}
+			}
+
 			base::MatrixXd para_trans = output * states.transpose() * gram.inverse();
 
 			parameters = para_trans.transpose();
-
 		}
 	}
 
-	void LS_Pseudo::lu(base::MatrixXd &output, base::MatrixXd &states, base::MatrixXd &parameters)
-	{
-		// [states]4xn; [acceleration]1xn; [parameters]4x1;
-		// A*x = b;  [x]4x1; [A]nx4; [b]nx1
-		// x = A.fullPivLu().solve(b);
-		parameters.resize(4,1);
-		base::MatrixXd A = states.transpose();
-		base::MatrixXd b = output.transpose();
-		parameters = A.fullPivLu().solve(b);
-		base::MatrixXd gram = A.transpose()*A;
-		Eigen::FullPivLU<Eigen::Matrix4d> lu(gram);
-		std::cout<< std::endl << "lu rank A " << lu.rank() << std::endl;
-
-
-		lu.setThreshold(1e-6);
-		std::cout<< std::endl << "rank A w/ Threshold(1e-6) " << lu.rank() << std::endl;
-		lu.setThreshold(1e-5);
-		std::cout<< std::endl << "rank A w/ Threshold(1e-5) " << lu.rank() << std::endl;
-		lu.setThreshold(1e-4);
-		std::cout<< std::endl << "rank A w/ Threshold(1e-4) " << lu.rank() << std::endl;
-		std::cout<< std::endl << "A*A^T "<< std::endl <<  gram << std::endl;
-
-	}
 
 	void LS_Pseudo::svd(base::MatrixXd &output, base::MatrixXd &states, base::MatrixXd &parameters)
 		{
@@ -194,26 +199,26 @@ namespace ls_pseudoinverse
 			parameters = svd.solve(b);
 			std::cout<< std::endl << " S "<< std::endl << svd.singularValues() << std::endl;
 			std::cout<< std::endl << "svd rank A " << svd.rank() << std::endl;
-	/*		svd.setThreshold(1e-6);
-			std::cout<< std::endl << "rank A w/ Threshold(1e-6)" << svd.rank() << std::endl;
-			svd.setThreshold(1e-5);
-			std::cout<< std::endl << "rank A w/ Threshold(1e-5)" << svd.rank() << std::endl;
-			svd.setThreshold(1e-4);
-			std::cout<< std::endl << "rank A w/ Threshold(1e-4)" << svd.rank() << std::endl;
-			svd.setThreshold(1e-3);
-			std::cout<< std::endl << "rank A w/ Threshold(1e-3)" << svd.rank() << std::endl;
+		//	svd.setThreshold(1e-6);
+		//	std::cout<< std::endl << "rank A w/ Threshold(1e-6)" << svd.rank() << std::endl;
+		//	svd.setThreshold(1e-5);
+		//	std::cout<< std::endl << "rank A w/ Threshold(1e-5)" << svd.rank() << std::endl;
+		//	svd.setThreshold(1e-4);
+		//	std::cout<< std::endl << "rank A w/ Threshold(1e-4)" << svd.rank() << std::endl;
+		//	svd.setThreshold(1e-3);
+		//	std::cout<< std::endl << "rank A w/ Threshold(1e-3)" << svd.rank() << std::endl;
 		//	parameters = svd.solve(b);
-			svd.setThreshold(1e-2);
-			std::cout<< std::endl << "rank A w/ Threshold(1e-2)" << svd.rank() << std::endl;
+		//	svd.setThreshold(1e-2);
+		//	std::cout<< std::endl << "rank A w/ Threshold(1e-2)" << svd.rank() << std::endl;
 		//	parameters = svd.solve(b);
-			std::cout<< std::endl << " S "<< std::endl << svd.singularValues() << std::endl;
-			svd.setThreshold(1e-1);
-			std::cout<< std::endl << "rank A w/ Threshold(1e-1)" << svd.rank() << std::endl;
-			svd.setThreshold(1e0);
-			std::cout<< std::endl << "rank A w/ Threshold(1e0)" << svd.rank() << std::endl;
-	*/		//std::cout<< std::endl << "A*A^T "<< std::endl <<  gram << std::endl;
+		//	std::cout<< std::endl << " S "<< std::endl << svd.singularValues() << std::endl;
+		//	svd.setThreshold(1e-1);
+		//	std::cout<< std::endl << "rank A w/ Threshold(1e-1)" << svd.rank() << std::endl;
+	//		svd.setThreshold(1e0);
+	//		std::cout<< std::endl << "rank A w/ Threshold(1e0)" << svd.rank() << std::endl;
+			//std::cout<< std::endl << "A*A^T "<< std::endl <<  gram << std::endl;
 
-			Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(gram);
+		//	Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(gram);
 
 
 			//std::cout<< std::endl << "rank A " << svd.matrixU() << std::endl;
@@ -279,6 +284,7 @@ namespace ls_pseudoinverse
 		real_parameters.resize(4,1);
 		if (parameters(0,0)!=0)
 		{
+			std::cout<<std::endl<< "convert parameters " <<std::endl <<std::endl;
 			real_parameters(0,0) = 1/parameters(0,0);
 			real_parameters(1,0) = -parameters(1,0)/parameters(0,0);
 			real_parameters(2,0) = -parameters(2,0)/parameters(0,0);
@@ -301,39 +307,49 @@ namespace ls_pseudoinverse
 		acceleration.resize(1,queueOfDyn.size());
 		forces.resize(1,queueOfDyn.size());
 
-		//convert_states(queueOfForces, queueOfRBS, states);
-		//convert_acceleration(queueOfRBA, acceleration);
+
 		convert_data(queueOfDyn, states, acceleration);
 		pseudo(acceleration, states, parameters);
-		//lu(acceleration, states, parameters);
-		//svd(acceleration, states, parameters);
+
 		convert_param(parameters, real_parameters);
 		relativ_error(acceleration, states, parameters, error);
 
+		std::cout<<std::endl<< "lamped parameters by pseudo_inverse: " <<std::endl << parameters <<std::endl;
 		std::cout<<std::endl<< "parameters by pseudo_inverse: " <<std::endl << real_parameters <<std::endl;
 		//std::cout<<std::endl<< "error pseudo: "<< error <<std::endl<< std::endl;
 
-		//convert_data2(queueOfDyn, states, forces);
+	//	convert_data2(queueOfDyn, states, forces);
+	//	pseudo(forces, states, parameters);
+
+	//	std::cout<<std::endl<< "parameters by pseudo_inverse2: " <<std::endl << parameters <<std::endl;
+
 
 		svd(acceleration, states, parameters);
 		convert_param(parameters, real_parameters);
-		relativ_error(acceleration, states, parameters, error);
+	//	relativ_error(acceleration, states, parameters, error);
 
 		std::cout<<std::endl<< "parameters by Singular Value Decomposition (SVD) : " <<std::endl << real_parameters <<std::endl;
 		//std::cout<<std::endl<< "error svd: "<< error <<std::endl<< std::endl;
 
 		pcr(acceleration, states, parameters);
-		relativ_error(acceleration, states, parameters, error);
+	//	relativ_error(acceleration, states, parameters, error);
 		convert_param(parameters, real_parameters);
 		std::cout<<std::endl<< "parameters by Principal Component Regression (PCR): " <<std::endl << real_parameters <<std::endl;
 		//std::cout<<std::endl<< "error pcr: "<< error <<std::endl<< std::endl;
 
-	//	lu(acceleration, states, parameters);
-	//	convert_param(parameters, real_parameters);
-	//	relativ_error(acceleration, states, parameters, error);
 
-	//	std::cout<<std::endl<< "parameters lu: " <<std::endl << real_parameters <<std::endl;
-	//	std::cout<<std::endl<< "error lu: "<< error <<std::endl<< std::endl;
+		convert_data2(queueOfDyn, states, forces);
+		pseudo(forces, states, parameters);
+
+		std::cout<<std::endl<< "parameters by pseudo_inverse2: " <<std::endl << parameters <<std::endl;
+
+		svd(forces, states, parameters);
+		std::cout<<std::endl<< "parameters by SVD_2 : " <<std::endl << real_parameters <<std::endl;
+
+		pcr(forces, states, parameters);
+		std::cout<<std::endl<< "parameters by PCR_2: " <<std::endl << real_parameters <<std::endl;
+
+
 	}
 
 	void LS_Pseudo::relativ_error(base::MatrixXd &output, base::MatrixXd &states, base::MatrixXd &parameters, double &error)
