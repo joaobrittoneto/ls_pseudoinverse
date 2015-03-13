@@ -126,8 +126,6 @@ namespace ls_pseudoinverse
 		forces.resize(1,queueOfDyn.size());
 		adap_samples_input::DynamicAUV dyn;
 
-		// fist acceleration is nan
-		queueOfDyn.pop();
 
 		for( int i=0; i < queueOfDyn.size(); i++)
 		{
